@@ -1,0 +1,20 @@
+{
+  "name": "right-tool",
+  "version": "0.1.0",
+  "description": "Shows your most used skills, commands and pinned snippets above the prompt. Type /1 to /5 in an empty prompt to insert one.",
+  "author": { "name": "INO" },
+  "userConfig": {
+    "halfLifeDays": {
+      "type": "number",
+      "title": "Half-life in days",
+      "description": "After this many days a past use counts half as much when ranking hints.",
+      "default": 14
+    },
+    "projectWeight": {
+      "type": "number",
+      "title": "Project weight",
+      "description": "How much more a use in the current project counts than a use anywhere else.",
+      "default": 3
+    }
+  }
+}

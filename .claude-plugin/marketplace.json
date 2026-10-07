@@ -1,0 +1,12 @@
+{
+  "name": "cc-mods",
+  "owner": { "name": "INO" },
+  "description": "Mods for Claude Code: plugins that draw and react inside the Claude Code interface.",
+  "plugins": [
+    {
+      "name": "right-tool",
+      "source": "./plugins/right-tool",
+      "description": "Shows your most used skills, commands and pinned snippets above the prompt. Type /1 to /5 in an empty prompt to insert one."
+    }
+  ]
+}
