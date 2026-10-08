@@ -55,10 +55,10 @@ function shortLabels(hints: Hint[]): string[] {
   return short.map((name, i) => (short.indexOf(name) !== short.lastIndexOf(name) ? label(hints[i]!) : name))
 }
 
-export function Band({ Box, Text, Button }: El, hints: Hint[], insert: Actions['insert']) {
+export function Band({ Box, Text, Button }: El, hints: Hint[], insert: Actions['insert'], columns: number) {
   const labels = shortLabels(hints)
   return (
-    <Box borderStyle="round" borderDimColor paddingX={1} justifyContent="space-between">
+    <Box width={columns} borderStyle="round" borderDimColor paddingX={1} justifyContent="space-between">
       <Box columnGap={3}>
         <Text color="claude" bold>
           ✻ Hints

@@ -1,6 +1,6 @@
 # right-tool
 
-Shows the skills and slash commands you use most, plus snippets you pin, in a band above the Claude Code prompt.
+Shows the skills and slash commands you use most, plus snippets you pin, in a band above the Claude Code prompt while you type a `/` command.
 
 ```
 ╭───────────────────────────────────────────────────────────────╮
@@ -10,7 +10,8 @@ Shows the skills and slash commands you use most, plus snippets you pin, in a ba
 
 ## Use it
 
-- Type `/1` to `/5` in an empty prompt. The prompt becomes that hint, for example `/code-review `, ready for arguments. Nothing is sent until you press Enter.
+- Type `/` in an empty prompt. The band appears above the prompt, next to Claude Code's own command list, and hides again once you type a space or send.
+- Type a digit from `1` to `5` right after the `/`. The prompt becomes that hint, for example `/code-review `, ready for arguments. Nothing is sent until you press Enter.
 - Click a hint to insert it.
 - Run `/right-tool` to open a pane with usage per hint, a 14-day sparkline and Pin, Hide and Insert buttons.
 

@@ -25,8 +25,17 @@ let isImporting = false
 let project = ''
 let commands = new Map<string, CommandInfo>()
 let ranked: Ranked[] = []
+let isTypingCommand = false
 
 const slots = () => ranked.slice(0, SLOTS)
+
+// The band shows only while the draft is a command name being typed: "/" and no space yet.
+function setDraft($: EngineInterface, text: string) {
+  const isTyping = /^\/\S*$/.test(text)
+  if (isTyping === isTypingCommand) return
+  isTypingCommand = isTyping
+  $.ui.invalidate('ui.render')
+}
 
 function rerank() {
   const opts = { halfLifeDays, projectWeight, limit: PANE_ROWS }
@@ -150,7 +159,10 @@ async function applyAction($: EngineInterface, action: Action): Promise<string> 
 
 function actions($: EngineInterface): Actions {
   return {
-    insert: hint => void $.prompt.fill({ text: insertText(hint), mode: 'replace' }),
+    insert: hint => {
+      setDraft($, insertText(hint))
+      void $.prompt.fill({ text: insertText(hint), mode: 'replace' })
+    },
     pin: hint => void applyAction($, { kind: 'pin', hint }),
     unpin: hint => void applyAction($, { kind: 'unpin', target: hintKey(hint) }),
     hide: name => void applyAction($, { kind: 'hide', name }),
@@ -200,24 +212,32 @@ export const register: Register = (on, options) => {
 
   // Only commands the person typed count: Claude's own Skill tool calls never reach command.run.
   on('command.run', async ($, e, next) => {
+    setDraft($, '')
     if (e.origin.kind === 'composer' && e.command !== SELF) await recordUse($, e.command)
     return next(e)
   })
 
+  on('prompt.submit', ($, e, next) => {
+    setDraft($, '')
+    return next(e)
+  })
+
   // "/1" to "/5" typed into an empty prompt becomes that hint. No command name starts with a digit.
-  on('prompt.edit', ($, e, next) => {
+  on('prompt.edit', async ($, e, next) => {
     const hint = slots()[Number(e.inputText) - 1]?.hint
-    if (e.text !== '/' || e.cursor !== 1 || !/^[1-9]$/.test(e.inputText) || !hint) return next(e)
-    const text = insertText(hint)
-    return { text, cursor: text.length }
+    const isPick = e.text === '/' && e.cursor === 1 && /^[1-9]$/.test(e.inputText) && hint
+    const text = isPick ? insertText(hint) : undefined
+    const box = text === undefined ? await next(e) : { text, cursor: text.length }
+    setDraft($, box.text)
+    return box
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey || e.props.isWorking) return next(e)
     const el = $.ui.resolve(e)
     if (consent === undefined) return ConsentBand(el, isGranted => void answerConsent($, isGranted ? 'granted' : 'declined'))
-    if (slots().length === 0) return next(e)
-    return Band(el, slots().map(s => s.hint), actions($).insert)
+    if (!isTypingCommand || slots().length === 0) return next(e)
+    return Band(el, slots().map(s => s.hint), actions($).insert, e.props.bodyColumns)
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) =>
