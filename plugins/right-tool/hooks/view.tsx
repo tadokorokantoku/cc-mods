@@ -58,21 +58,18 @@ function shortLabels(hints: Hint[]): string[] {
 export function Band({ Box, Text, Button }: El, hints: Hint[], insert: Actions['insert'], columns: number) {
   const labels = shortLabels(hints)
   return (
-    <Box width={columns} borderStyle="round" borderDimColor paddingX={1} justifyContent="space-between">
-      <Box columnGap={3}>
-        <Text color="claude" bold>
-          ✻ Hints
-        </Text>
-        {hints.map((hint, i) => (
-          <Box key={hintKey(hint)} columnGap={1}>
-            <Text backgroundColor="suggestion" color="inverseText" bold>
-              {' ' + (i + 1) + ' '}
-            </Text>
-            <Button key={'pick-' + hintKey(hint)} plain label={labels[i]} onPress={() => insert(hint)} />
-          </Box>
-        ))}
-      </Box>
-      <Text dimColor>/1–/{hints.length}</Text>
+    <Box width={columns} borderStyle="round" borderDimColor paddingX={1} columnGap={3}>
+      <Text color="claude" bold>
+        ✻ Hints
+      </Text>
+      {hints.map((hint, i) => (
+        <Box key={hintKey(hint)} columnGap={1}>
+          <Text backgroundColor="suggestion" color="inverseText" bold>
+            {' ' + (i + 1) + ' '}
+          </Text>
+          <Button key={'pick-' + hintKey(hint)} plain label={labels[i]} onPress={() => insert(hint)} />
+        </Box>
+      ))}
     </Box>
   )
 }
