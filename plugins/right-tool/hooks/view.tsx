@@ -5,6 +5,8 @@ import type { Hint } from './hints'
 
 // Only the elements every surface draws, so one view serves terminal and desktop alike.
 type El = Pick<Elements[keyof Elements], 'Box' | 'Text' | 'Button'>
+// Mobile draws no Input, so the pane's phrase field shows only where the surface has one.
+type PaneEl = El & Partial<Pick<Elements['terminal'], 'Input'>>
 
 export type Row = {
   hint: Hint
@@ -23,6 +25,7 @@ export type PaneModel = {
   hidden: string[]
   isImporting: boolean
   width: number
+  phrase: string
 }
 
 export type Actions = {
@@ -31,6 +34,8 @@ export type Actions = {
   unpin: (hint: Hint) => void
   hide: (name: string) => void
   unhide: (name: string) => void
+  typePhrase: (text: string) => void
+  addPhrase: (text: string) => void
   reimport: () => void
 }
 
@@ -136,8 +141,8 @@ function Card(el: El, row: Row, maxCount: number, width: number, act: Actions) {
   )
 }
 
-export function Pane(el: El, model: PaneModel, act: Actions) {
-  const { Box, Text, Button } = el
+export function Pane(el: PaneEl, model: PaneModel, act: Actions) {
+  const { Box, Text, Button, Input } = el
   const maxCount = Math.max(1, ...model.rows.map(r => r.count))
   return (
     <Box flexDirection="column" rowGap={1}>
@@ -146,6 +151,17 @@ export function Pane(el: El, model: PaneModel, act: Actions) {
         {Tile(el, 'Tools here', String(model.tools))}
         {Tile(el, 'Streak', model.streak + (model.streak === 1 ? ' day' : ' days'))}
       </Box>
+      {Input && (
+        <Input
+          key="add-phrase"
+          label="✎ Add a phrase "
+          placeholder="e.g. run the tests and fix what fails"
+          value={model.phrase}
+          submitLabel="pin"
+          onInput={act.typePhrase}
+          onSubmit={act.addPhrase}
+        />
+      )}
       {model.rows.length === 0 && <Text dimColor>No uses yet. Type a skill or command, or pin one.</Text>}
       <Box flexDirection="column">{model.rows.map(row => Card(el, row, maxCount, model.width, act))}</Box>
       {model.hidden.length > 0 && (
@@ -161,7 +177,7 @@ export function Pane(el: El, model: PaneModel, act: Actions) {
       )}
       <Box columnGap={2}>
         <Button key="reimport" label={model.isImporting ? 'Reading…' : 'Re-import history'} onPress={act.reimport} />
-        <Text dimColor>Type /1 to /5 in an empty prompt to insert a hint.</Text>
+        <Text dimColor>Type / then 1 to 5 to insert a hint.</Text>
       </Box>
     </Box>
   )

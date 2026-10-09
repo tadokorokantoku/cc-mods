@@ -68,8 +68,11 @@ test('the pane shows a card per hint and unpins from its button', async ($, on) 
 
   const ui = await $.ui.mount({ plugin: 'right-tool', surface: 'terminal', ...PANE })
   expect(await ui.find({ type: 'Text', text: /pstack · Review the current diff/ })).toBeDefined()
+  await $.ui.input({ plugin: 'right-tool', key: 'add-phrase', text: '  run the tests  ' })
+  expect((await $.command.run({ ...typed, command: 'right-tool', args: 'list' })).text).toContain('"run the tests"')
+
   await ui.press({ key: 'pin-/code-review' })
   const listed = await $.command.run({ ...typed, command: 'right-tool', args: 'list' })
-  expect(listed.text).toContain('Pinned: none')
+  expect(listed.text).toContain('Pinned: "run the tests"\n')
   await ui.unmount()
 })
