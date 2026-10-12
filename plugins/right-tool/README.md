@@ -36,7 +36,7 @@ Change the half-life and project weight in `/config`, under right-tool.
 
 ## Privacy
 
-On first run the band asks before reading past sessions. If you agree, right-tool searches `~/.claude/projects/**/*.jsonl` with `grep` and `awk` and keeps three fields per typed slash command: its name, the session's working directory and the time. It keeps nothing else and sends nothing over the network. Usage is stored in this plugin's own store under your Claude Code configuration directory.
+In its first session, right-tool learns from past sessions and shows a notice saying how many uses it found. It searches `~/.claude/projects/**/*.jsonl` with `grep` and `awk` and keeps three fields per typed slash command: its name, the session's working directory and the time. It keeps nothing else and sends nothing over the network. Usage is stored in this plugin's own store under your Claude Code configuration directory.
 
 ## Requirements
 

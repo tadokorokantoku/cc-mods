@@ -5,7 +5,7 @@ import type { Action } from './args'
 import { emptyPrefs, emptyUsage, hintKey, insertText, rank, record } from './hints'
 import type { Hint, Prefs, Ranked, Usage } from './hints'
 import { historyArgv, parseHistory } from './history'
-import { Band, ConsentBand, Pane } from './view'
+import { Band, Pane } from './view'
 import type { Actions, PaneModel } from './view'
 
 const SELF = 'right-tool'
@@ -13,13 +13,10 @@ const PANE = 'right-tool'
 const SLOTS = 5
 const PANE_ROWS = 12
 
-type Consent = 'granted' | 'declined'
-
 let halfLifeDays = 14
 let projectWeight = 3
 let usage: Usage = emptyUsage()
 let prefs: Prefs = emptyPrefs()
-let consent: Consent | undefined
 let isImporting = false
 let project = ''
 let commands = new Map<string, CommandInfo>()
@@ -49,7 +46,6 @@ async function refreshCommands($: EngineInterface) {
 async function load($: EngineInterface) {
   usage = ((await $.store.get('usage')) as Usage | undefined) ?? emptyUsage()
   prefs = ((await $.store.get('prefs')) as Prefs | undefined) ?? emptyPrefs()
-  consent = (await $.store.get('consent')) as Consent | undefined
   project = await $.session.cwd()
   await refreshCommands($)
   rerank()
@@ -85,18 +81,18 @@ async function importHistory($: EngineInterface): Promise<string> {
     usage = uses.reduce((next, use) => record(next, use.name, use.project, use.at, halfLifeDays), emptyUsage())
     await $.store.set('usage', usage)
     rerank()
-    return `Learned ${uses.length} commands from past sessions.`
+    return `right-tool learned ${uses.length} uses from past sessions.`
   } finally {
     isImporting = false
     $.ui.invalidate('ui.render')
   }
 }
 
-async function answerConsent($: EngineInterface, value: Consent) {
-  consent = value
-  await $.store.set('consent', value)
-  $.ui.invalidate('ui.render')
-  if (value === 'granted') $.ui.toast(await importHistory($))
+// The first session learns from past ones on its own and says so once.
+async function importOnce($: EngineInterface) {
+  if (await $.store.get('imported')) return
+  await $.store.set('imported', true)
+  $.ui.toast((await importHistory($)) + ' Run /right-tool to see them.')
 }
 
 const describe = (hint: Hint) => (hint.kind === 'command' ? '/' + hint.name : JSON.stringify(hint.text))
@@ -123,8 +119,6 @@ async function applyAction($: EngineInterface, action: Action): Promise<string> 
     case 'error':
       return action.message
     case 'import':
-      consent = 'granted'
-      await $.store.set('consent', consent)
       return importHistory($)
     case 'pin': {
       if (action.hint.kind === 'command' && !commands.has(action.hint.name)) {
@@ -197,6 +191,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: SELF, description: 'Open the right-tool pane, or pin and hide hints' })
     await load($)
+    void importOnce($)
     return next(e)
   })
 
@@ -225,11 +220,8 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    if (e.props.hasSurvey || e.props.isWorking) return next(e)
-    const el = $.ui.resolve(e)
-    if (consent === undefined) return ConsentBand(el, isGranted => void answerConsent($, isGranted ? 'granted' : 'declined'))
-    if (!isTypingCommand || slots().length === 0) return next(e)
-    return Band(el, slots().map(s => s.hint), actions($).insert, e.props.bodyColumns)
+    if (e.props.hasSurvey || e.props.isWorking || !isTypingCommand || slots().length === 0) return next(e)
+    return Band($.ui.resolve(e), slots().map(s => s.hint), actions($).insert, e.props.bodyColumns)
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) =>

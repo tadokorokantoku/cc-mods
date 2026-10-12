@@ -62,21 +62,6 @@ export function Band({ Box, Text, Button }: El, hints: Hint[], insert: Actions['
   )
 }
 
-export function ConsentBand({ Box, Text, Button }: El, answer: (isGranted: boolean) => void) {
-  return (
-    <Box borderStyle="round" borderDimColor paddingX={1} flexDirection="column">
-      <Text>right-tool can learn your most used skills and commands from past sessions.</Text>
-      <Text dimColor>
-        It reads only command names, project folders and times from ~/.claude/projects. Nothing leaves your machine.
-      </Text>
-      <Box columnGap={2}>
-        <Button key="consent-yes" variant="primary" label="Learn from history" onPress={() => answer(true)} />
-        <Button key="consent-no" label="Start fresh" onPress={() => answer(false)} />
-      </Box>
-    </Box>
-  )
-}
-
 function Card(el: El, row: Row, width: number, act: Actions) {
   const { Box, Text, Button } = el
   const { hint } = row

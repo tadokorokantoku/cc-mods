@@ -23,7 +23,7 @@ const edit = ($: unknown, e: PromptEditInput) => ($ as Edit).prompt.edit(e)
 
 const slash = { origin: { kind: 'composer' as const }, text: '', cursor: 0, start: 0, end: 0, inputText: '/' }
 
-test('the band asks before reading history, then shows pinned hints on every surface', async ($, on) => {
+test('the band shows pinned hints on every surface', async ($, on) => {
   mock.store(on)
   editor(on)
   on('command.list', () => ({ value: commands }))
@@ -33,10 +33,6 @@ test('the band asks before reading history, then shows pinned hints on every sur
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ plugin: 'right-tool', surface, ...BAND })
-    if (surface === 'terminal') {
-      expect(await ui.find({ type: 'Text', text: /learn your most used/ })).toBeDefined()
-      await ui.press({ key: 'consent-no' })
-    }
     expect((await ui.find({ key: 'pick-/code-review' }))?.props.label).toBe('code-review')
     expect((await ui.find({ key: 'pick-run the tests' }))?.props.label).toBe('"run the tests"')
     await ui.unmount()
@@ -49,7 +45,6 @@ test('the band stays hidden until the prompt starts a command, and /1 inserts th
   on('command.list', () => ({ value: commands }))
   await $.command.run({ ...typed, command: 'right-tool', args: 'pin code-review' })
   const ui = await $.ui.mount({ plugin: 'right-tool', surface: 'terminal', ...BAND })
-  await ui.press({ key: 'consent-no' })
   expect(await ui.find({ key: 'pick-/code-review' })).toBeUndefined()
 
   await edit($, slash)
