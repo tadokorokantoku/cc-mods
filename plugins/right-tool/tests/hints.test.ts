@@ -44,9 +44,18 @@ test('pins come first, hidden and uninstalled commands never show, and the list 
   expect(ranked).not.toContain('gone')
 })
 
-test('parseHistory reads name, project and time, skipping broken rows', () => {
-  const tsv = 'pstack:bro\t/Users/me/app\t2026-10-07T12:00:00.000Z\nbroken\n\nloop\t/x\tnot-a-date\n'
-  expect(parseHistory(tsv)).toEqual([{ name: 'pstack:bro', project: '/Users/me/app', at: Date.parse('2026-10-07T12:00:00.000Z') }])
+test('parseHistory keeps typed commands and skips tool output, subagents and broken rows', () => {
+  const row = (fields: object) => JSON.stringify({ type: 'user', isSidechain: false, cwd: '/Users/me/app', timestamp: '2026-10-07T12:00:00.000Z', ...fields })
+  const typed = { message: { content: '<command-name>/pstack:bro</command-name>\n<command-message>pstack:bro</command-message>' } }
+  const jsonl = [
+    row(typed),
+    row({ ...typed, isSidechain: true }),
+    row({ message: { content: 'see <command-name>/tdd</command-name>' } }),
+    row({ message: { content: [{ type: 'tool_result', content: '<command-name>/tdd</command-name>' }] } }),
+    '{broken',
+    '',
+  ].join('\n')
+  expect(parseHistory(jsonl)).toEqual([{ name: 'pstack:bro', project: '/Users/me/app', at: Date.parse('2026-10-07T12:00:00.000Z') }])
 })
 
 test('parseArgs tells snippets from commands', () => {

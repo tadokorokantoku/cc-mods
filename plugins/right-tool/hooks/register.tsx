@@ -72,23 +72,9 @@ async function importHistory($: EngineInterface): Promise<string> {
   isImporting = true
   $.ui.invalidate('ui.render')
   try {
-    // grep narrows the transcripts to typed slash commands, so awk never sees whole conversations. awk keeps
-    // user rows that start with the <command-name> tag and prints name, cwd and time, tab separated.
+    // grep keeps only the transcript lines that mention a typed slash command; parseHistory reads three fields from each.
     const { exitCode, stdout, stderr } = await $.process.run(
-      [
-        'sh',
-        '-c',
-        `grep -rh --include='*.jsonl' -F '<command-name>/' "$1" | awk "$2"`,
-        'sh',
-        home + '/.claude/projects',
-        `/"type":"user"/ && /"isSidechain":false/ && /"content":"<command-(message|name)>/ {
-  n = c = t = ""
-  if (match($0, /<command-name>\\/[^<]+</)) n = substr($0, RSTART + 15, RLENGTH - 16)
-  if (match($0, /"cwd":"[^"]*"/)) c = substr($0, RSTART + 7, RLENGTH - 8)
-  if (match($0, /"timestamp":"[^"]*"/)) t = substr($0, RSTART + 13, RLENGTH - 14)
-  if (n != "" && c != "" && t != "") print n "\\t" c "\\t" t
-}`,
-      ],
+      ['grep', '-rh', '--include=*.jsonl', '-F', '<command-name>/', home + '/.claude/projects'],
       { timeoutMs: 120_000 },
     )
     // grep exits 1 when nothing matched, which is an empty history, not a failure.
@@ -120,7 +106,7 @@ async function reimport($: EngineInterface) {
 const describe = (hint: Hint) => (hint.kind === 'command' ? '/' + hint.name : JSON.stringify(hint.text))
 
 function listText(): string {
-  const lines = slots().map((h, i) => `  /${i + 1}  ${describe(h.hint)}${h.isPinned ? '  (pinned)' : ''}  used ${h.count}x`)
+  const lines = slots().map((h, i) => '  /' + (i + 1) + '  ' + describe(h.hint) + (h.isPinned ? '  (pinned)' : '') + '  used ' + h.count + 'x')
   return [
     lines.length > 0 ? 'Hints (type / then 1 to 5 to insert one):' : 'No hints yet. Use a few skills or commands first.',
     ...lines,
