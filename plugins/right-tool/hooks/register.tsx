@@ -73,10 +73,10 @@ async function importHistory($: EngineInterface): Promise<string> {
   $.ui.invalidate('ui.render')
   try {
     // grep keeps only the transcript lines that mention a typed slash command; parseHistory reads three fields from each.
-    const { exitCode, stdout, stderr } = await $.process.run(
-      ['grep', '-rh', '--include=*.jsonl', '-F', '<command-name>/', home + '/.claude/projects'],
-      { timeoutMs: 120_000 },
-    )
+    const { exitCode, stdout, stderr } = await $.process.run(['grep', '-rh', '--include=*.jsonl', '-F', '<command-name>/', '.'], {
+      cwd: home + '/.claude/projects',
+      timeoutMs: 120_000,
+    })
     // grep exits 1 when nothing matched, which is an empty history, not a failure.
     if (exitCode > 1) return 'Reading past sessions failed: ' + stderr.trim()
     const uses = parseHistory(stdout).filter(use => use.name !== SELF)
@@ -106,7 +106,7 @@ async function reimport($: EngineInterface) {
 const describe = (hint: Hint) => (hint.kind === 'command' ? '/' + hint.name : JSON.stringify(hint.text))
 
 function listText(): string {
-  const lines = slots().map((h, i) => '  /' + (i + 1) + '  ' + describe(h.hint) + (h.isPinned ? '  (pinned)' : '') + '  used ' + h.count + 'x')
+  const lines = slots().map((slot, i) => '  /' + (i + 1) + '  ' + describe(slot.hint) + (slot.isPinned ? '  (pinned)' : '') + '  used ' + slot.count + 'x')
   return [
     lines.length > 0 ? 'Hints (type / then 1 to 5 to insert one):' : 'No hints yet. Use a few skills or commands first.',
     ...lines,

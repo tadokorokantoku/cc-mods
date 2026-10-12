@@ -48,10 +48,10 @@ right-tool sends nothing anywhere. It makes no network requests, calls no model,
 
 **The one program it runs**
 
-To read past sessions it runs `grep` directly, with no shell, on your `~/.claude/projects` folder:
+To read past sessions it runs `grep` directly, with no shell, in your `~/.claude/projects` folder:
 
 ```sh
-grep -rh --include=*.jsonl -F "<command-name>/" ~/.claude/projects
+cd ~/.claude/projects && grep -rh --include=*.jsonl -F "<command-name>/" .
 ```
 
 `grep` keeps only the transcript lines that mention a typed slash command. right-tool then takes the command name, working directory and time from each of those lines and drops the rest. `grep` reads local files only. The call is written out in full in `hooks/register.tsx`.
