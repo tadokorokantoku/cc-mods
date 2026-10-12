@@ -4,7 +4,7 @@ import { parseArgs, USAGE } from './args'
 import type { Action } from './args'
 import { emptyPrefs, emptyUsage, hintKey, insertText, rank, record } from './hints'
 import type { Hint, Prefs, Ranked, Usage } from './hints'
-import { historyArgv, parseHistory } from './history'
+import { parseHistory } from './history'
 import { Band, Pane } from './view'
 import type { Actions, PaneModel } from './view'
 
@@ -72,9 +72,25 @@ async function importHistory($: EngineInterface): Promise<string> {
   isImporting = true
   $.ui.invalidate('ui.render')
   try {
-    const { exitCode, stdout, stderr } = await $.process.run(historyArgv(home + '/.claude/projects'), {
-      timeoutMs: 120_000,
-    })
+    // grep narrows the transcripts to typed slash commands, so awk never sees whole conversations. awk keeps
+    // user rows that start with the <command-name> tag and prints name, cwd and time, tab separated.
+    const { exitCode, stdout, stderr } = await $.process.run(
+      [
+        'sh',
+        '-c',
+        `grep -rh --include='*.jsonl' -F '<command-name>/' "$1" | awk "$2"`,
+        'sh',
+        home + '/.claude/projects',
+        `/"type":"user"/ && /"isSidechain":false/ && /"content":"<command-(message|name)>/ {
+  n = c = t = ""
+  if (match($0, /<command-name>\\/[^<]+</)) n = substr($0, RSTART + 15, RLENGTH - 16)
+  if (match($0, /"cwd":"[^"]*"/)) c = substr($0, RSTART + 7, RLENGTH - 8)
+  if (match($0, /"timestamp":"[^"]*"/)) t = substr($0, RSTART + 13, RLENGTH - 14)
+  if (n != "" && c != "" && t != "") print n "\\t" c "\\t" t
+}`,
+      ],
+      { timeoutMs: 120_000 },
+    )
     // grep exits 1 when nothing matched, which is an empty history, not a failure.
     if (exitCode > 1) return 'Reading past sessions failed: ' + stderr.trim()
     const uses = parseHistory(stdout).filter(use => use.name !== SELF)
@@ -92,7 +108,13 @@ async function importHistory($: EngineInterface): Promise<string> {
 async function importOnce($: EngineInterface) {
   if (await $.store.get('imported')) return
   await $.store.set('imported', true)
-  $.ui.toast((await importHistory($)) + ' Run /right-tool to see them.')
+  const text = await importHistory($)
+  $.ui.toast(text + ' Run /right-tool to see them.')
+}
+
+async function reimport($: EngineInterface) {
+  const text = await importHistory($)
+  $.ui.toast(text)
 }
 
 const describe = (hint: Hint) => (hint.kind === 'command' ? '/' + hint.name : JSON.stringify(hint.text))
@@ -160,7 +182,7 @@ function actions($: EngineInterface): Actions {
     unpin: hint => void applyAction($, { kind: 'unpin', target: hintKey(hint) }),
     hide: name => void applyAction($, { kind: 'hide', name }),
     unhide: name => void applyAction($, { kind: 'unhide', name }),
-    reimport: () => void importHistory($).then(text => $.ui.toast(text)),
+    reimport: () => void reimport($),
   }
 }
 

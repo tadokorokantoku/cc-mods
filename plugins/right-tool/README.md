@@ -38,7 +38,33 @@ Change the half-life and project weight in `/config`, under right-tool.
 
 ## Privacy
 
-In its first session, right-tool learns from past sessions and shows a notice saying how many uses it found. It searches `~/.claude/projects/**/*.jsonl` with `grep` and `awk` and keeps three fields per typed slash command: its name, the session's working directory and the time. It keeps nothing else and sends nothing over the network. Usage is stored in this plugin's own store under your Claude Code configuration directory.
+right-tool sends nothing anywhere. It makes no network requests, calls no model, and starts no programs except the one below.
+
+**What it reads**
+
+- In its first session, and when you run `/right-tool import` or press Re-import, it reads past sessions to count the slash commands you typed. It shows a notice saying how many uses it found.
+- It keeps three fields per typed command: the command name, the session's working directory and the time. It keeps nothing else from the transcripts.
+- It stores those counts and your pins in this plugin's own store under your Claude Code configuration directory.
+
+**The one program it runs**
+
+To read past sessions it runs this, with your `~/.claude/projects` folder as `$1` and a fixed awk program as `$2`:
+
+```sh
+sh -c 'grep -rh --include="*.jsonl" -F "<command-name>/" "$1" | awk "$2"'
+```
+
+`grep` keeps only the transcript lines that hold a typed slash command, so awk never sees whole conversations. `awk` prints the name, working directory and time from each of those lines. Both read local files only. The full command is written out in `hooks/register.tsx`.
+
+**What its hooks see**
+
+| Hook | What it does |
+| --- | --- |
+| `prompt.edit` | Reads the prompt as you type, only to check whether it is `/` and a command name, and to turn `/1` to `/5` into a hint. Every other edit passes through unchanged. |
+| `command.run` | Counts the name of each slash command you run, then lets the command run unchanged. It also answers `/right-tool` itself. |
+| `prompt.submit` | Hides the band when you send a prompt. The prompt passes through unchanged. |
+| `ui.render` | Draws the band above the prompt and the `/right-tool` pane. |
+| `session.start` | Loads the counts, lists installed commands and registers `/right-tool`. |
 
 ## Requirements
 
