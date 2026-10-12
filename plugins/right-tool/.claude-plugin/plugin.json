@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Shows your most used skills and slash commands in a band above the prompt while you type /. Type a digit from 1 to 5 to insert one.",
   "author": {
-    "name": "INO"
+    "name": "tadokorokantoku"
   },
   "homepage": "https://github.com/tadokorokantoku/cc-mods/tree/main/plugins/right-tool",
   "repository": "https://github.com/tadokorokantoku/cc-mods",

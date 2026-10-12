@@ -1,7 +1,7 @@
 {
   "name": "cc-mods",
   "owner": {
-    "name": "INO"
+    "name": "tadokorokantoku"
   },
   "description": "Mods for Claude Code: plugins that draw and react inside the Claude Code interface.",
   "plugins": [
