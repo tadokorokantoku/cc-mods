@@ -5,8 +5,6 @@ import type { Hint } from './hints'
 
 // Only the elements every surface draws, so one view serves terminal and desktop alike.
 type El = Pick<Elements[keyof Elements], 'Box' | 'Text' | 'Button'>
-// Mobile draws no Input, so the pane's phrase field shows only where the surface has one.
-type PaneEl = El & Partial<Pick<Elements['terminal'], 'Input'>>
 
 export type Row = {
   hint: Hint
@@ -20,7 +18,6 @@ export type PaneModel = {
   hidden: string[]
   isImporting: boolean
   width: number
-  phrase: string
 }
 
 export type Actions = {
@@ -29,8 +26,6 @@ export type Actions = {
   unpin: (hint: Hint) => void
   hide: (name: string) => void
   unhide: (name: string) => void
-  typePhrase: (text: string) => void
-  addPhrase: (text: string) => void
   reimport: () => void
 }
 
@@ -110,21 +105,10 @@ function Card(el: El, row: Row, width: number, act: Actions) {
   )
 }
 
-export function Pane(el: PaneEl, model: PaneModel, act: Actions) {
-  const { Box, Text, Button, Input } = el
+export function Pane(el: El, model: PaneModel, act: Actions) {
+  const { Box, Text, Button } = el
   return (
     <Box flexDirection="column" rowGap={1}>
-      {Input && (
-        <Input
-          key="add-phrase"
-          label="✎ Add a phrase "
-          placeholder="e.g. run the tests and fix what fails"
-          value={model.phrase}
-          submitLabel="pin"
-          onInput={act.typePhrase}
-          onSubmit={act.addPhrase}
-        />
-      )}
       {model.rows.length === 0 && <Text dimColor>No uses yet. Type a skill or command, or pin one.</Text>}
       <Box flexDirection="column">{model.rows.map(row => Card(el, row, model.width, act))}</Box>
       {model.hidden.length > 0 && (

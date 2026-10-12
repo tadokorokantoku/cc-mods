@@ -25,8 +25,6 @@ let project = ''
 let commands = new Map<string, CommandInfo>()
 let ranked: Ranked[] = []
 let isTypingCommand = false
-// What the pane's phrase field holds, kept so a redraw doesn't wipe what the person typed.
-let phrase = ''
 
 const slots = () => ranked.slice(0, SLOTS)
 
@@ -168,14 +166,6 @@ function actions($: EngineInterface): Actions {
     unpin: hint => void applyAction($, { kind: 'unpin', target: hintKey(hint) }),
     hide: name => void applyAction($, { kind: 'hide', name }),
     unhide: name => void applyAction($, { kind: 'unhide', name }),
-    typePhrase: text => {
-      phrase = text
-    },
-    addPhrase: text => {
-      if (text.trim() === '') return
-      phrase = ''
-      void applyAction($, { kind: 'pin', hint: { kind: 'text', text: text.trim() } })
-    },
     reimport: () => void importHistory($).then(text => $.ui.toast(text)),
   }
 }
@@ -197,7 +187,6 @@ function paneModel(width: number): PaneModel {
     hidden: prefs.hidden,
     isImporting,
     width,
-    phrase,
   }
 }
 
