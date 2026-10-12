@@ -2,7 +2,7 @@ import type { CommandInfo, EngineInterface, Register } from 'claude-code'
 
 import { parseArgs, USAGE } from './args'
 import type { Action } from './args'
-import { daily, emptyPrefs, emptyUsage, hintKey, insertText, rank, record, streak } from './hints'
+import { emptyPrefs, emptyUsage, hintKey, insertText, rank, record } from './hints'
 import type { Hint, Prefs, Ranked, Usage } from './hints'
 import { historyArgv, parseHistory } from './history'
 import { Band, ConsentBand, Pane } from './view'
@@ -12,7 +12,6 @@ const SELF = 'right-tool'
 const PANE = 'right-tool'
 const SLOTS = 5
 const PANE_ROWS = 12
-const SPARK_DAYS = 14
 
 type Consent = 'granted' | 'declined'
 
@@ -188,18 +187,11 @@ function detail(hint: Hint): string {
 }
 
 function paneModel(width: number): PaneModel {
-  const now = Date.now()
-  const here = Object.values(usage.projects[project] ?? {})
   return {
-    uses: here.reduce((sum, stat) => sum + stat.count, 0),
-    tools: here.length,
-    streak: streak(usage.global, now),
-    rows: ranked.map(({ hint, count, isPinned }, i) => ({
+    rows: ranked.map(({ hint, isPinned }, i) => ({
       hint,
       slot: i < SLOTS ? i + 1 : undefined,
       isPinned,
-      count,
-      daily: hint.kind === 'command' ? daily(usage.global[hint.name], now, SPARK_DAYS) : [],
       detail: detail(hint),
     })),
     hidden: prefs.hidden,

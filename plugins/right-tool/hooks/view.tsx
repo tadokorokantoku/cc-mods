@@ -12,15 +12,10 @@ export type Row = {
   hint: Hint
   slot?: number
   isPinned: boolean
-  count: number
-  daily: number[]
   detail: string
 }
 
 export type PaneModel = {
-  uses: number
-  tools: number
-  streak: number
   rows: Row[]
   hidden: string[]
   isImporting: boolean
@@ -37,13 +32,6 @@ export type Actions = {
   typePhrase: (text: string) => void
   addPhrase: (text: string) => void
   reimport: () => void
-}
-
-const SPARK = '▁▂▃▄▅▆▇█'
-
-const sparkline = (values: number[]) => {
-  const max = Math.max(1, ...values)
-  return values.map(v => (v === 0 ? '·' : SPARK[Math.min(7, Math.ceil((v / max) * 8) - 1)])).join('')
 }
 
 const clip = (text: string, width: number) => (text.length > width ? text.slice(0, Math.max(0, width - 1)) + '…' : text)
@@ -94,20 +82,9 @@ export function ConsentBand({ Box, Text, Button }: El, answer: (isGranted: boole
   )
 }
 
-function Tile({ Box, Text }: El, name: string, value: string) {
-  return (
-    <Box key={name} borderStyle="round" borderDimColor paddingX={1} flexDirection="column" flexGrow={1}>
-      <Text dimColor>{name}</Text>
-      <Text bold>{value}</Text>
-    </Box>
-  )
-}
-
-function Card(el: El, row: Row, maxCount: number, width: number, act: Actions) {
+function Card(el: El, row: Row, width: number, act: Actions) {
   const { Box, Text, Button } = el
   const { hint } = row
-  const barWidth = 16
-  const filled = Math.round((row.count / Math.max(1, maxCount)) * barWidth)
   return (
     <Box key={hintKey(hint)} borderStyle="round" borderDimColor paddingX={1} flexDirection="column">
       <Box justifyContent="space-between">
@@ -118,7 +95,6 @@ function Card(el: El, row: Row, maxCount: number, width: number, act: Actions) {
           {row.isPinned && <Text dimColor> · pinned</Text>}
         </Box>
         <Box columnGap={1}>
-          <Button key={'insert-' + hintKey(hint)} label="Insert" onPress={() => act.insert(hint)} />
           <Button
             key={'pin-' + hintKey(hint)}
             label={row.isPinned ? 'Unpin' : 'Pin'}
@@ -130,27 +106,14 @@ function Card(el: El, row: Row, maxCount: number, width: number, act: Actions) {
         </Box>
       </Box>
       {row.detail !== '' && <Text dimColor>{clip(row.detail, width - 4)}</Text>}
-      {hint.kind === 'command' && (
-        <Box>
-          <Text color="suggestion">{sparkline(row.daily) + '  '}</Text>
-          <Text color="claude">{'━'.repeat(filled)}</Text>
-          <Text dimColor>{'─'.repeat(barWidth - filled) + '  ' + row.count + 'x'}</Text>
-        </Box>
-      )}
     </Box>
   )
 }
 
 export function Pane(el: PaneEl, model: PaneModel, act: Actions) {
   const { Box, Text, Button, Input } = el
-  const maxCount = Math.max(1, ...model.rows.map(r => r.count))
   return (
     <Box flexDirection="column" rowGap={1}>
-      <Box columnGap={1}>
-        {Tile(el, 'Uses here', String(model.uses))}
-        {Tile(el, 'Tools here', String(model.tools))}
-        {Tile(el, 'Streak', model.streak + (model.streak === 1 ? ' day' : ' days'))}
-      </Box>
       {Input && (
         <Input
           key="add-phrase"
@@ -163,7 +126,7 @@ export function Pane(el: PaneEl, model: PaneModel, act: Actions) {
         />
       )}
       {model.rows.length === 0 && <Text dimColor>No uses yet. Type a skill or command, or pin one.</Text>}
-      <Box flexDirection="column">{model.rows.map(row => Card(el, row, maxCount, model.width, act))}</Box>
+      <Box flexDirection="column">{model.rows.map(row => Card(el, row, model.width, act))}</Box>
       {model.hidden.length > 0 && (
         <Box flexDirection="column">
           <Text bold>Hidden</Text>

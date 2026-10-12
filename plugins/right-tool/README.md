@@ -13,7 +13,7 @@ Shows the skills and slash commands you use most, plus snippets you pin, in a ba
 - Type `/` in an empty prompt. The band appears above the prompt, next to Claude Code's own command list, and hides again once you type a space or send.
 - Type a digit from `1` to `5` right after the `/`. The prompt becomes that hint, for example `/code-review `, ready for arguments. Nothing is sent until you press Enter.
 - Click a hint to insert it.
-- Run `/right-tool` to open a pane with usage per hint, a 14-day sparkline and Pin, Hide and Insert buttons. Type a phrase into its Add a phrase field and press Enter to pin it.
+- Run `/right-tool` to open a pane that lists every hint with Pin and Hide buttons. Type a phrase into its Add a phrase field and press Enter to pin it.
 
 | Command | What it does |
 | --- | --- |

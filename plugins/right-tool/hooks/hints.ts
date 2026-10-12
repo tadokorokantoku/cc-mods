@@ -1,8 +1,7 @@
 export type Hint = { kind: 'command'; name: string } | { kind: 'text'; text: string }
 
-// `score` is the decayed use count as of `at`; `count` is the raw total;
-// `days` counts uses per UTC day for the most recent KEEP_DAYS days used.
-export type Stat = { score: number; count: number; at: number; days?: Record<string, number> }
+// `score` is the decayed use count as of `at`; `count` is the raw total.
+export type Stat = { score: number; count: number; at: number }
 
 export type Usage = {
   global: Record<string, Stat>
@@ -16,15 +15,6 @@ export type Ranked = { hint: Hint; count: number; isPinned: boolean }
 export type RankOptions = { halfLifeDays: number; projectWeight: number; limit: number }
 
 const DAY = 86_400_000
-const KEEP_DAYS = 30
-
-const dayKey = (at: number) => new Date(at).toISOString().slice(0, 10)
-
-function addDay(days: Record<string, number> = {}, at: number): Record<string, number> {
-  const key = dayKey(at)
-  const next = { ...days, [key]: (days[key] ?? 0) + 1 }
-  return Object.fromEntries(Object.entries(next).sort(([a], [b]) => a.localeCompare(b)).slice(-KEEP_DAYS))
-}
 
 export const emptyUsage = (): Usage => ({ global: {}, projects: {} })
 export const emptyPrefs = (): Prefs => ({ pins: [], hidden: [] })
@@ -37,12 +27,11 @@ export function decayed(stat: Stat | undefined, now: number, halfLifeDays: numbe
 }
 
 function bump(stat: Stat | undefined, at: number, halfLifeDays: number): Stat {
-  if (!stat) return { score: 1, count: 1, at, days: addDay({}, at) }
-  const days = addDay(stat.days, at)
+  if (!stat) return { score: 1, count: 1, at }
   // Uses can arrive out of order (history import), so decay whichever is older.
   return at >= stat.at
-    ? { score: stat.score * weight(stat.at, at, halfLifeDays) + 1, count: stat.count + 1, at, days }
-    : { score: stat.score + weight(at, stat.at, halfLifeDays), count: stat.count + 1, at: stat.at, days }
+    ? { score: stat.score * weight(stat.at, at, halfLifeDays) + 1, count: stat.count + 1, at }
+    : { score: stat.score + weight(at, stat.at, halfLifeDays), count: stat.count + 1, at: stat.at }
 }
 
 export function record(usage: Usage, name: string, project: string, at: number, halfLifeDays: number): Usage {
@@ -91,19 +80,3 @@ export function rank(
   return [...pinned, ...ranked].slice(0, limit)
 }
 
-// Uses per day for the `span` days ending today, oldest first.
-export function daily(stat: Stat | undefined, now: number, span: number): number[] {
-  return Array.from({ length: span }, (_, i) => stat?.days?.[dayKey(now - (span - 1 - i) * DAY)] ?? 0)
-}
-
-// Consecutive days with any use, counting back from today, or from yesterday when today has none yet.
-export function streak(stats: Record<string, Stat>, now: number): number {
-  const used = (at: number) => Object.values(stats).some(stat => (stat.days?.[dayKey(at)] ?? 0) > 0)
-  let day = used(now) ? now : now - DAY
-  let length = 0
-  while (used(day)) {
-    length += 1
-    day -= DAY
-  }
-  return length
-}
