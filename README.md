@@ -4,7 +4,7 @@ Mods for [Claude Code](https://code.claude.com): plugins whose hooks module draw
 
 | Mod | What it does |
 | --- | --- |
-| [right-tool](plugins/right-tool) | Shows your most used skills, commands and pinned snippets above the prompt. Type `/1` to `/5` in an empty prompt to insert one. |
+| [right-tool](plugins/right-tool) | Shows your most used skills and slash commands above the prompt while you type `/`. Type a digit from 1 to 5 to insert one. |
 
 ## Install
 
@@ -32,3 +32,7 @@ claude plugin test ./plugins/right-tool
 ```
 
 To add a mod, create `plugins/<name>/` and add an entry for it to `.claude-plugin/marketplace.json`.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

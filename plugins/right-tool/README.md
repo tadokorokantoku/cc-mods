@@ -8,6 +8,8 @@ Shows the skills and slash commands you use most, plus snippets you pin, in a ba
 ╰───────────────────────────────────────────────────────────────╯
 ```
 
+On its first run, right-tool reads the command names in your past Claude Code sessions to rank hints. Everything stays on your machine. See [Privacy](#privacy).
+
 ## Use it
 
 - Type `/` in an empty prompt. The band appears above the prompt, next to Claude Code's own command list, and hides again once you type a space or send.
@@ -41,4 +43,9 @@ In its first session, right-tool learns from past sessions and shows a notice sa
 ## Requirements
 
 - Claude Code v2.1.287 or later. Tested with v2.1.292.
+- The Claude Code terminal or desktop app. The hint band draws only on those two.
 - macOS or Linux for the history import, which runs `sh`, `grep` and `awk`. Everything else works on any platform.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
