@@ -11,7 +11,7 @@ import type { Actions, PaneModel } from './view'
 const SELF = 'right-tool'
 const PANE = 'right-tool'
 const SLOTS = 5
-const PANE_ROWS = 12
+const PANE_ROWS = 20
 
 let halfLifeDays = 14
 let projectWeight = 3
