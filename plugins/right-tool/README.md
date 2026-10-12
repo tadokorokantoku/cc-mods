@@ -70,7 +70,7 @@ cd ~/.claude/projects && grep -rh --include=*.jsonl -F "<command-name>/" .
 
 - Claude Code v2.1.287 or later. Tested with v2.1.292.
 - The Claude Code terminal or desktop app. The hint band draws only on those two.
-- macOS or Linux for the history import, which runs `sh`, `grep` and `awk`. Everything else works on any platform.
+- `grep` on your `PATH` for the history import, as macOS and Linux have. Everything else works without it.
 
 ## License
 

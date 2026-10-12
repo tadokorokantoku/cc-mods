@@ -7,6 +7,9 @@
   },
   "homepage": "https://github.com/tadokorokantoku/cc-mods/tree/main/plugins/right-tool",
   "repository": "https://github.com/tadokorokantoku/cc-mods",
+  "documentationUrl": "https://github.com/tadokorokantoku/cc-mods/tree/main/plugins/right-tool#readme",
+  "privacyPolicyUrl": "https://github.com/tadokorokantoku/cc-mods/tree/main/plugins/right-tool#privacy",
+  "supportUrl": "https://github.com/tadokorokantoku/cc-mods/issues",
   "license": "MIT",
   "keywords": [
     "skills",
